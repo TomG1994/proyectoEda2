@@ -14,7 +14,6 @@ class base
         double suma1=0, suma2=0; // Suma el numerador (suma1) y denominador (suma2) para poder dividir sus resultados
         double resultadoFinal[4];
         string fDeX = "";
-        string* fragmentosFdeX = nullptr;
     public:
         base(double _x, short _expMax, short _expMax2){
             x = _x;
@@ -25,7 +24,7 @@ class base
 
         void guardarResultados(string mensaje){
         const string resultados = "../output/resultados.txt";
-        ofstream archivo(resultados, ios::app); //ios::app es para abrir el archivo en modo de apertura, permite agregar datos en vez de sobreescribirlos
+        ofstream archivo(resultados); //ios::app es para abrir el archivo en modo de apertura, permite agregar datos en vez de sobreescribirlos
 
         if(!archivo.is_open()){
             perror("Error al abrir el archivo para guardar los datos");
@@ -36,23 +35,22 @@ class base
         archivo << mensaje;
         archivo.close();
         cout << "Resultados de derivacion guardados en: " << resultados << endl;
-        };
+        }
 
-        string extraerFuncion(double ecuacion, short j){
-            if(ecuacion[j] != 0){
-                int valorEnInt = round(ecuacion[j]);
-                if(j > 0){
-                    fragmentosFdeX[j] = "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")"; //ATENCION! ecuacion printea basura cuando el numero es exagerado
-                    //cout << fragmentosFdeX;
-                }else{
-                    fragmentosFdeX[0] = "(" + to_string(valorEnInt) + ")";
-                }
-                if(!fDeX.empty()){
-                    fDeX += "+";
-                }
-                fDeX += fragmentosFdeX[j];
+    string extraerFuncion(double* ecuacion, short j) {
+        string fragmentoFuncion = ""; // Inicializamos un fragmento de la función
+
+        if (ecuacion[j] != 0) {
+            int valorEnInt = round(ecuacion[j]);
+            if (j > 0) {
+                fragmentoFuncion += "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")" + "+";
+            } else {
+                fragmentoFuncion += "(" + to_string(valorEnInt) + ")";
             }
         }
+
+        return fragmentoFuncion; // Devolvemos el fragmento de la función
+    }
 };
 
 class derivadas : public base{
@@ -67,16 +65,17 @@ class derivadas : public base{
         void der2(double[]);
         void der3(double[]);
         void der4(double[]);
-        void crearMensaje(double[], string);
+        string crearMensaje(double[], string);
 };
+
 derivadas::derivadas(double _x, short _expMax,short _expMax2,double _h) : base(_x,_expMax,_expMax2){// Constructor
     h = _h;
 }
+
 void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){ //*ecuacion lo uso como numerador para las homograficas
     double resultado_x; // Me sirve para mostrar todos los resultados de la operacion al reemplazar x
     short contador=0;
-    fDeX = "";
-    fragmentosFdeX = new string [expMax+1];
+    string fDeX_fragmento = "";
 
     if (opcion=='1')
     {
@@ -84,19 +83,9 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
             resultado_x=0; // para qsue no se acumulen los resultados tras cada ciclo
             fDeX = "";
             for (short j = expMax; j >= 0; j--){
-                if(ecuacion[j] != 0){
-                    int valorEnInt = round(ecuacion[j]);
-                    if(j > 0){
-                        fragmentosFdeX[j] = "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")"; //ATENCION! ecuacion printea basura cuando el numero es exagerado
-                        //cout << fragmentosFdeX;
-                    }else{
-                        fragmentosFdeX[0] = "(" + to_string(valorEnInt) + ")";
-                    }
-                    if(!fDeX.empty()){
-                        fDeX += "+";
-                    }
-                    fDeX += fragmentosFdeX[j];
-                }
+                fDeX_fragmento = extraerFuncion(ecuacion, j);
+                fDeX += fDeX_fragmento;
+
                 resultado_x += (ecuacion[j])*(pow(i,j));
                 if (i==x-(2*h)){
                     resultados[contador] = resultado_x;
@@ -119,16 +108,22 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
     }
     else if(opcion=='2'){
         // Suma numerador
+        string fDeX_numerador = "";
+        string fDeX_denominador = "";
         cout << endl;
         for (double i = x-(2*h); i <= x+(2*h); i+=h){
             suma1=0;// Reseteo los valores para que no se acumulen tras cada ciclo
             suma2=0;
+            fDeX = "";
             for (short j = expMax; j >= 0; j--){
+                if(i == (x-(2*h))){
+                fDeX_fragmento = extraerFuncion(ecuacion, j);
+                fDeX_numerador += fDeX_fragmento;
+                }
                 if (j==0){
                     suma1 += ecuacion[j];
                     cout << "("<<ecuacion[j]<<")";
-                }
-                else{
+                }else{
                     suma1 += (ecuacion[j])*(pow(i,j));
                     cout << "f(x) = ("<<ecuacion[j]<<"*"<<i<<"^"<<j<<")+";
                 }
@@ -136,6 +131,10 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
             // Suma denominador
             cout << "/";
             for (short j = expMax2; j >= 0; j--){
+                if(i == (x-(2*h))){
+                fDeX_fragmento = extraerFuncion(denominador, j);
+                fDeX_denominador += fDeX_fragmento;
+                }
                 if (j==0){
                     suma2+=denominador[j];
                     cout << "("<<denominador[j]<<")";
@@ -168,14 +167,15 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
             }
             contador++; // Me sirve para poder darle un valor al arreglo "resultados[4]"
         }
+        cout << "\n\t\t" << fDeX_numerador << "/" << fDeX_denominador << "\n";
+        fDeX = fDeX_numerador + "/" + fDeX_denominador;
     }
-    delete[] fragmentosFdeX;
-    cout << fDeX << "\n";
+    cout << "\n" << fDeX << "\n";
     der1(resultadoFinal);
     der2(resultadoFinal);
     der3(resultadoFinal);
     der4(resultadoFinal);
-    crearMensaje(resultadoFinal, fDeX);
+    guardarResultados(crearMensaje(resultadoFinal, fDeX));
 }
 void derivadas::der1(double resultadoFinal[]){
     resultadoFinal[0] = (-resultados[4]+8*resultados[3]-8*resultados[1]+resultados[0])/(12*h);
@@ -193,7 +193,7 @@ void derivadas::der4(double resultadoFinal[]){
     resultadoFinal[3] = ((resultados[4])-(4*resultados[3])+(6*resultados[2])-(4*resultados[1])+(resultados[0]))/(pow(h,4));
     cout <<"f''''(x): " <<resultadoFinal[3]<<endl;
 }
-void derivadas::crearMensaje(double resultadoFinal[], string fDeX){
+string derivadas::crearMensaje(double resultadoFinal[], string fDeX){
     string mensaje = "\nLas derivadas de la función: '" + fDeX + "' son:\n\n" +
 
                         "\tf'(x): " + to_string(resultadoFinal[0]) + "\n"
@@ -201,6 +201,7 @@ void derivadas::crearMensaje(double resultadoFinal[], string fDeX){
                         "\tf'''(x): " + to_string(resultadoFinal[2]) + "\n"
                         "\tf''''(x): " + to_string(resultadoFinal[3]) + "\n"; //Si el numero es una locura como 5.539252e69 entonces el string se convierte en 0.0000000
     cout << mensaje;
+    return mensaje;
 }
 /*-----------------------Mï¿½todo del trapecio (integraciï¿½n numï¿½rica)-----------------------*/
 class integral : public base{
