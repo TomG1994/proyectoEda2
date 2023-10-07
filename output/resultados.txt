@@ -1,0 +1,10 @@
+f'(x): -4.333333
+f''(x): 0.000000
+f'''(x): 2600.000000
+f''''(x): 760800.000000
+
+Valor de la imagen de los extremos	771.000000
+Valor imagen del medio	1675.125000
+
+	 Area total : 	1030.312500
+
