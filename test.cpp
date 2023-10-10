@@ -23,34 +23,88 @@ class base
         ~base(){};
 
         void guardarResultados(string mensaje){
-        const string resultados = "../output/resultados.txt";
-        ofstream archivo(resultados); //ios::app es para abrir el archivo en modo de apertura, permite agregar datos en vez de sobreescribirlos
+            const string resultados = "../output/resultados.txt";
+            ofstream archivo(resultados); //ios::app es para abrir el archivo en modo de apertura, permite agregar datos en vez de sobreescribirlos
 
-        if(!archivo.is_open()){
-            perror("Error al abrir el archivo para guardar los datos");
-            return;
-        }
-
-        cout << mensaje << endl;
-        archivo << mensaje;
-        archivo.close();
-        cout << "Resultados de derivacion guardados en: " << resultados << endl;
-        }
-
-    string extraerFuncion(double* ecuacion, short j) {
-        string fragmentoFuncion = ""; // Inicializamos un fragmento de la función
-
-        if (ecuacion[j] != 0) {
-            int valorEnInt = round(ecuacion[j]);
-            if (j > 0) {
-                fragmentoFuncion += "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")" + "+";
-            } else {
-                fragmentoFuncion += "(" + to_string(valorEnInt) + ")";
+            if(!archivo.is_open()){
+                perror("Error al abrir el archivo para guardar los datos");
+                return;
             }
-        }
 
-        return fragmentoFuncion; // Devolvemos el fragmento de la función
-    }
+            cout << mensaje << endl;
+            archivo << mensaje;
+            archivo.close();
+            cout << "Resultados de derivacion guardados en: " << resultados << endl;
+        };
+
+        string extraerFuncion(double* ecuacion, short j) {
+            string fragmentoFuncion = ""; // Inicializamos un fragmento de la función
+
+            if (ecuacion[j] != 0) {
+                int valorEnInt = round(ecuacion[j]);
+                if (j > 0) {
+                    fragmentoFuncion += "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")" + "+";
+                } else {
+                    fragmentoFuncion += "(" + to_string(valorEnInt) + ")";
+                }
+            }
+            return fragmentoFuncion; // Devolvemos el fragmento de la función
+        };
+
+        short ingresoEcuacion(double *ecuacion, char opcion, double *denominador, short mayExp, short mayExp2){
+            string fDeX_fragmento ="";
+            cout << endl;
+            if (opcion=='1'){
+                fDeX = "";
+                for (short i = mayExp; i >= 0; i--){
+                    if (i==0){
+                        cout << "T.I: "; cin >> ecuacion[i];
+                    }else{
+                        cout << "x^"<<i<<": "; cin >> ecuacion[i];
+                    }
+                    fDeX_fragmento = extraerFuncion(ecuacion, i);
+                    fDeX += fDeX_fragmento;
+                }
+                cout << fDeX;
+            } else if (opcion=='2'){
+                fDeX = "";
+                string fDeX_numerador = "";
+                string fDeX_denominador = "";
+                cout << "  Numerador\n";
+                for (short i = mayExp; i >= 0; i--){
+                    if (i==0){
+                        cout << "T.I: "; cin >> ecuacion[i];
+                    }
+                    else{
+                        cout << "x^"<<i<<": "; cin >> ecuacion[i];
+                    }
+                    fDeX_fragmento = extraerFuncion(ecuacion, i);
+                    fDeX_numerador += fDeX_fragmento;
+                }
+
+                short bandera=0; // si no cambia a 1 es porque no se ingreso ningun valor para el denominador o se ingreso un 0
+                cout << "\n  Denominador\n";
+                for (short i = mayExp2; i >= 0; i--){
+                    if (i==0){
+                        cout << "T.I: "; cin >> denominador[i];
+                        if(bandera==0 && denominador[i]==0){ // no se ingreso un coeficiente válido y el denominador es = 0, error matemático
+                            return 1;
+                        }
+                    }
+                    else{
+                        cout << "x^"<<i<<": "; cin >> denominador[i];
+                        if(denominador[i]!=0){
+                            bandera=1; // hay al menos un término != de 0
+                        } // sino no hacer nada, si se ingresa 1*x^2 y dps 0*x no importa, porque la bandera ya esta en 1
+                    }
+                    fDeX_fragmento = extraerFuncion(denominador, i);
+                    fDeX_denominador += fDeX_fragmento;
+                }
+                fDeX = fDeX_numerador + "/" + fDeX_denominador;
+            }
+            cout << "\n\n\tfDeX dentro de ingresoEcuacion" << fDeX << endl;
+            return 0;
+        };
 };
 
 class derivadas : public base{
@@ -72,20 +126,26 @@ derivadas::derivadas(double _x, short _expMax,short _expMax2,double _h) : base(_
     h = _h;
 }
 
+string derivadas::crearMensaje(double resultadoFinal[], string fDeX) {
+    string mensaje = "\nLas derivadas de la función: '" + fDeX + "' son:\n\n" +
+
+                        "\tf'(x): " + to_string(resultadoFinal[0]) + "\n"
+                        "\tf''(x): " + to_string(resultadoFinal[1]) + "\n"
+                        "\tf'''(x): " + to_string(resultadoFinal[2]) + "\n"
+                        "\tf''''(x): " + to_string(resultadoFinal[3]) + "\n"; //Si el numero es una locura como 5.539252e69 entonces el string se convierte en 0.0000000
+    cout << mensaje;
+    return mensaje;
+}
+
 void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){ //*ecuacion lo uso como numerador para las homograficas
     double resultado_x; // Me sirve para mostrar todos los resultados de la operacion al reemplazar x
     short contador=0;
-    string fDeX_fragmento = "";
 
     if (opcion=='1')
     {
         for (double i = x-(2*h); i <= x+(2*h); i+=h){//me toma todos los valores de x sin necesidad de crear variables aparte
             resultado_x=0; // para qsue no se acumulen los resultados tras cada ciclo
-            fDeX = "";
             for (short j = expMax; j >= 0; j--){
-                fDeX_fragmento = extraerFuncion(ecuacion, j);
-                fDeX += fDeX_fragmento;
-
                 resultado_x += (ecuacion[j])*(pow(i,j));
                 if (i==x-(2*h)){
                     resultados[contador] = resultado_x;
@@ -108,18 +168,11 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
     }
     else if(opcion=='2'){
         // Suma numerador
-        string fDeX_numerador = "";
-        string fDeX_denominador = "";
         cout << endl;
         for (double i = x-(2*h); i <= x+(2*h); i+=h){
             suma1=0;// Reseteo los valores para que no se acumulen tras cada ciclo
             suma2=0;
-            fDeX = "";
             for (short j = expMax; j >= 0; j--){
-                if(i == (x-(2*h))){
-                fDeX_fragmento = extraerFuncion(ecuacion, j);
-                fDeX_numerador += fDeX_fragmento;
-                }
                 if (j==0){
                     suma1 += ecuacion[j];
                     cout << "("<<ecuacion[j]<<")";
@@ -131,10 +184,6 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
             // Suma denominador
             cout << "/";
             for (short j = expMax2; j >= 0; j--){
-                if(i == (x-(2*h))){
-                fDeX_fragmento = extraerFuncion(denominador, j);
-                fDeX_denominador += fDeX_fragmento;
-                }
                 if (j==0){
                     suma2+=denominador[j];
                     cout << "("<<denominador[j]<<")";
@@ -167,10 +216,7 @@ void derivadas::operaciones(double *ecuacion, char opcion, double *denominador){
             }
             contador++; // Me sirve para poder darle un valor al arreglo "resultados[4]"
         }
-        cout << "\n\t\t" << fDeX_numerador << "/" << fDeX_denominador << "\n";
-        fDeX = fDeX_numerador + "/" + fDeX_denominador;
     }
-    cout << "\n" << fDeX << "\n";
     der1(resultadoFinal);
     der2(resultadoFinal);
     der3(resultadoFinal);
@@ -193,16 +239,6 @@ void derivadas::der4(double resultadoFinal[]){
     resultadoFinal[3] = ((resultados[4])-(4*resultados[3])+(6*resultados[2])-(4*resultados[1])+(resultados[0]))/(pow(h,4));
     cout <<"f''''(x): " <<resultadoFinal[3]<<endl;
 }
-string derivadas::crearMensaje(double resultadoFinal[], string fDeX){
-    string mensaje = "\nLas derivadas de la función: '" + fDeX + "' son:\n\n" +
-
-                        "\tf'(x): " + to_string(resultadoFinal[0]) + "\n"
-                        "\tf''(x): " + to_string(resultadoFinal[1]) + "\n"
-                        "\tf'''(x): " + to_string(resultadoFinal[2]) + "\n"
-                        "\tf''''(x): " + to_string(resultadoFinal[3]) + "\n"; //Si el numero es una locura como 5.539252e69 entonces el string se convierte en 0.0000000
-    cout << mensaje;
-    return mensaje;
-}
 /*-----------------------Mï¿½todo del trapecio (integraciï¿½n numï¿½rica)-----------------------*/
 class integral : public base{
     private:
@@ -215,6 +251,8 @@ class integral : public base{
         integral(double, short, short, double, double, int);
         ~integral(){}
         void calcular_xi(double *, char, double*);
+        string crearMensaje(double[], string, double, double);
+
 };
 
 integral::integral(double _x, short _expMax, short _expMax2, double _a, double _b, int _n) : base(_x,_expMax, _expMax2){ // para pasar limite a(inferior) y b(superior)
@@ -222,6 +260,16 @@ integral::integral(double _x, short _expMax, short _expMax2, double _a, double _
     b = _b;
     n = _n;
 }
+
+string integral::crearMensaje(double resultadoFinal[], string fDeX, double a, double b){
+    string mensaje = "\nLos resultados de la intregracion del intervalo entre: "+ to_string(a) + " y " + to_string(b) + " de la F(x) " + fDeX + " son:\n\n" +
+                        "\tDelta X: " + to_string(resultadoFinal[0]) + "\n"
+                        "\tSuma de los subintervalos de los extremos: " + to_string(resultadoFinal[1]) + "\n"
+                        "\tSuma de los subintervalos del medio: " + to_string(resultadoFinal[2]) + "\n"
+                        "\t\nArea total es: " + to_string(resultadoFinal[3]) + "u^2" + "\n";
+    cout << mensaje;
+    return mensaje;
+};
 
 void integral::calcular_xi(double *termino, char opcion, double *denominador){
     deltaX = (b-a)/n;   // calculo el valor de deltaX
@@ -240,7 +288,8 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
                 for(short exp=expMax; exp>=0; exp--){
                     if(exp==0){ // termino independiente
                         suma_imagen_num += termino[exp];
-                        suma_xExtremos += suma_imagen_num;
+                        suma_xExtremos += suma_imagen_num; 
+                        //cicla 2 veces 
                     } else {
                         suma_imagen_num += termino[exp] * pow(resultado_x_i, exp);
                     }
@@ -317,17 +366,21 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
             }
         }
     }
-    // cout <<"Delta x: " <<deltaX << endl;
-    // cout <<"Suma de todas las imagenes: " <<suma_imagen<<endl;
-    // cout <<"Suma de las imagenes del medio: " <<suma_imagenMedio<<endl;
-    // cout <<"Suma de los extremos: " <<suma_xExtremos<<endl;
+    //cout <<"Delta x: " <<deltaX << endl;
+    //cout <<"Suma de todas las imagenes: " <<suma_imagen<<endl;
+    //cout <<"Suma de las imagenes del medio: " <<suma_imagenMedio<<endl;
+    //cout <<"Suma de los extremos: " <<suma_xExtremos<<endl;
     if(salir==0){
+
         area = (deltaX/2)*(2*suma_imagenMedio + suma_xExtremos);
         cout<<"\nEl area total es: "<<area<<"u^2"<<endl;
+        resultadoFinal[0] = deltaX;
+        resultadoFinal[1] = suma_xExtremos;
+        resultadoFinal[2] = suma_imagenMedio;
+        resultadoFinal[3] = area;
+        guardarResultados(crearMensaje(resultadoFinal, fDeX, a, b));
     }
 }
-
-short ingresoEcuacion(double *, char, double *, short, short);
 
 int main(void){
     setlocale(LC_ALL, "en-US" );
@@ -340,7 +393,7 @@ int main(void){
     double *ecuacion=nullptr;
     double *denominador=nullptr;
     char opcion;
-    base inicializar (x,mayExp, mayExp2); // Constructor general
+    base inicializar (x, mayExp, mayExp2); // Constructor general
 
     do{
         cout << "\t-----MENU PRINCIPAL-----\n\n";
@@ -375,11 +428,11 @@ int main(void){
                     }
                 }while(mayExp<=0);
 
-                derivadas derivar(x,mayExp,mayExp2,h);
+                derivadas derivar(x, mayExp, mayExp2, h);
 
                 ecuacion = new double[mayExp+1]; // +1 para el T.I
 
-                ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2);  // nullptr y 0 porque ahi estarÃ­an los terminos para las funciones homograficas
+                derivar.ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2);  // nullptr y 0 porque ahi estarÃ­an los terminos para las funciones homograficas
                 cout<<endl;
                 derivar.operaciones(ecuacion,opcion1,0);// 0 porque ahi estarÃ­a el denominador (funciones racionales)
                 delete[] ecuacion;
@@ -392,7 +445,7 @@ int main(void){
                 ecuacion = new double[mayExp+1];// Reutilizo la variable ecuacion para usarla como numerador
                 denominador = new double[mayExp2+1];
 
-                if(ingresoEcuacion(ecuacion, opcion1, denominador, mayExp, mayExp2)==1){
+                if(derivar.ingresoEcuacion(ecuacion, opcion1, denominador, mayExp, mayExp2)==1){
                     cout << "\aEl denominador no puede ser igual a 0. Ingrese los datos nuevamente.\n";
                 }else{
                     derivar.operaciones(ecuacion,opcion1,denominador);
@@ -435,7 +488,7 @@ int main(void){
                             integral funcion(x, mayExp, mayExp2, a, b, n);
                             ecuacion = new double[mayExp+1];
 
-                            ingresoEcuacion(ecuacion, opcion2, nullptr, mayExp, mayExp2);
+                            funcion.ingresoEcuacion(ecuacion, opcion2, nullptr, mayExp, mayExp2);
                             funcion.calcular_xi(ecuacion, opcion2, nullptr);
                             delete[] ecuacion;
                         }else{
@@ -451,7 +504,7 @@ int main(void){
                         ecuacion = new double[mayExp+1];// Reutilizo la variable ecuacion para usarla como numerador
                         denominador = new double[mayExp2+1];
 
-                        if(ingresoEcuacion(ecuacion, opcion, denominador, mayExp, mayExp2)==1){
+                        if(funcion.ingresoEcuacion(ecuacion, opcion, denominador, mayExp, mayExp2)==1){
                             cout << "\aEl denominador no puede ser igual a 0. Ingrese los datos nuevamente.\n";
                         }else{
                             funcion.calcular_xi(ecuacion, opcion2, denominador);
@@ -472,47 +525,5 @@ int main(void){
         }
     }while (opcion!='0');
 
-    return 0;
-}
-
-short ingresoEcuacion(double *ecuacion, char opcion, double *denominador, short mayExp, short mayExp2){
-
-    cout << endl;
-    if (opcion=='1'){
-        for (short i = mayExp; i >= 0; i--){
-            if (i==0){
-                cout << "T.I: "; cin >> ecuacion[i];
-            }else{
-                cout << "x^"<<i<<": "; cin >> ecuacion[i];
-            }
-        }
-    } else if (opcion=='2'){
-        cout << "  Numerador\n";
-        for (short i = mayExp; i >= 0; i--){
-            if (i==0){
-                cout << "T.I: "; cin >> ecuacion[i];
-            }
-            else{
-                cout << "x^"<<i<<": "; cin >> ecuacion[i];
-            }
-        }
-
-        short bandera=0; // si no cambia a 1 es porque no se ingreso ningun valor para el denominador o se ingreso un 0
-        cout << "\n  Denominador\n";
-        for (short i = mayExp2; i >= 0; i--){
-            if (i==0){
-                cout << "T.I: "; cin >> denominador[i];
-                if(bandera==0 && denominador[i]==0){ // no se ingreso un coeficiente válido y el denominador es = 0, error matemático
-                    return 1;
-                }
-            }
-            else{
-                cout << "x^"<<i<<": "; cin >> denominador[i];
-                if(denominador[i]!=0){
-                    bandera=1; // hay al menos un término != de 0
-                } // sino no hacer nada, si se ingresa 1*x^2 y dps 0*x no importa, porque la bandera ya esta en 1
-            }
-        }
-    }
     return 0;
 }
