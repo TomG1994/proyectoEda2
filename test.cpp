@@ -251,7 +251,7 @@ class integral : public base{
         integral(double, short, short, double, double, int);
         ~integral(){}
         void calcular_xi(double *, char, double*);
-        string crearMensaje(double[], string, double, double);
+        string crearMensaje(double[], double[], string, double, double);
 
 };
 
@@ -261,10 +261,12 @@ integral::integral(double _x, short _expMax, short _expMax2, double _a, double _
     n = _n;
 }
 
-string integral::crearMensaje(double resultadoFinal[], string fDeX, double a, double b){
+string integral::crearMensaje(double resultadoFinal[], double xExtremos[],string fDeX, double a, double b){
     string mensaje = "\nLos resultados de la intregracion del intervalo entre: "+ to_string(a) + " y " + to_string(b) + " de la F(x) " + fDeX + " son:\n\n" +
                         "\tDelta X: " + to_string(resultadoFinal[0]) + "\n"
                         "\tSuma de los subintervalos de los extremos: " + to_string(resultadoFinal[1]) + "\n"
+                        "\t\tExtremo inferior: " + to_string(xExtremos[0]) + "\n"
+                        "\t\tExtremo superior: " + to_string(xExtremos[1]) + "\n\n"
                         "\tSuma de los subintervalos del medio: " + to_string(resultadoFinal[2]) + "\n"
                         "\t\nArea total es: " + to_string(resultadoFinal[3]) + "u^2" + "\n";
     cout << mensaje;
@@ -273,7 +275,7 @@ string integral::crearMensaje(double resultadoFinal[], string fDeX, double a, do
 
 void integral::calcular_xi(double *termino, char opcion, double *denominador){
     deltaX = (b-a)/n;   // calculo el valor de deltaX
-
+    double xExtremos[2]; // 0 = a xExtremo del limite inferior 'a' y 1 = a xExtremo del limite superior 'b'
     double suma_xExtremos=0;
     double suma_imagen_num, suma_imagen_den; // para ir guardando el valor que me queda al reemplazar por cada uno de los valores obtenidos en i en f(x), se reutiliza en el pasaje
     double suma_imagenMedio=0;
@@ -288,8 +290,11 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
                 for(short exp=expMax; exp>=0; exp--){
                     if(exp==0){ // termino independiente
                         suma_imagen_num += termino[exp];
-                        suma_xExtremos += suma_imagen_num; 
-                        //cicla 2 veces 
+                        if (i == 0){
+                            xExtremos[0] = suma_imagen_num; 
+                        } else if (i == n){
+                            xExtremos[1] = suma_imagen_num;
+                        }
                     } else {
                         suma_imagen_num += termino[exp] * pow(resultado_x_i, exp);
                     }
@@ -333,7 +338,11 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
                     cout << "La función en f(" << resultado_x_i << ") es = m/0 (siendo m un numero real != 0), es decir que el área va a ser = infinito\n";
                     salir=1;
                 }else{
-                    suma_xExtremos += (suma_imagen_num/suma_imagen_den);
+                    if(i==0){
+                    xExtremos[0] += (suma_imagen_num/suma_imagen_den);
+                    }else if(i==n){
+                    xExtremos[1] += (suma_imagen_num/suma_imagen_den);
+                    }
                 }
             }else{
                 suma_imagen_num=0;
@@ -365,6 +374,7 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
                 }
             }
         }
+            suma_xExtremos = (xExtremos[0]+xExtremos[1]);
     }
     //cout <<"Delta x: " <<deltaX << endl;
     //cout <<"Suma de todas las imagenes: " <<suma_imagen<<endl;
@@ -378,7 +388,7 @@ void integral::calcular_xi(double *termino, char opcion, double *denominador){
         resultadoFinal[1] = suma_xExtremos;
         resultadoFinal[2] = suma_imagenMedio;
         resultadoFinal[3] = area;
-        guardarResultados(crearMensaje(resultadoFinal, fDeX, a, b));
+        guardarResultados(crearMensaje(resultadoFinal, xExtremos, fDeX, a, b));
     }
 }
 
