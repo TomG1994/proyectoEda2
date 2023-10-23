@@ -53,7 +53,7 @@ int main(void){
 
                 ecuacion = new double[mayExp+1]; // +1 para el T.I
 
-                derivar.ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2, &constanteSumar, nullptr, opcion2);  // nullptr porque ahi va el denominador para las funciones homograficas
+                derivar.ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud);  // nullptr porque ahi va el denominador para las funciones homograficas
                 cout<<endl;
                 derivar.operaciones(ecuacion,opcion1,nullptr,constante, amplitud, '0'); // '0' es la opcion 2 para trigonometricas
                 delete[] ecuacion;
@@ -66,7 +66,7 @@ int main(void){
                 ecuacion = new double[mayExp+1]; // Reutilizo la variable ecuacion para usarla como numerador
                 denom_o_noArgumento = new double[mayExp2+1];
 
-                if(derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2)==1){
+                if(derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud)==1){
                     cout << "\aEl denominador no puede ser igual a 0. Ingrese los datos nuevamente.\n";
                 }else{
                     derivar.operaciones(ecuacion,opcion1,denom_o_noArgumento,constante, amplitud, '0');
@@ -92,7 +92,7 @@ int main(void){
 
                     ecuacion = new double[mayExp+1];
                     denom_o_noArgumento = new double[mayExp2+1];
-                    derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2);
+                    derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud);
 
                     derivar.operaciones(ecuacion, opcion1, denom_o_noArgumento, constante, amplitud, opcion2);
 
@@ -113,7 +113,7 @@ int main(void){
 
                     ecuacion = new double[mayExp+1];
 
-                    derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, &constante, opcion2);
+                    derivar.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, &constante, opcion2, amplitud);
 
                     derivar.operaciones(ecuacion, opcion1, denom_o_noArgumento, constante, amplitud, '0');    
                 }
@@ -144,6 +144,7 @@ int main(void){
                     cout << "[1] Polinomica\n";
                     cout << "[2] Racional\n";
                     cout << "[3] Trigonometrica\n";
+                    cout << "[4] Exponenciales\n";
                     cout << "Opcion: "; cin >> opcion1;
                     cout << endl;
 
@@ -152,7 +153,7 @@ int main(void){
                         integral funcion(mayExp, mayExp2, a, b, n);
                         ecuacion = new double[mayExp+1];
 
-                        funcion.ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2, &constanteSumar, nullptr, opcion2);
+                        funcion.ingresoEcuacion(ecuacion, opcion1, nullptr, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud);
                         funcion.calcular_xi(ecuacion, opcion1, nullptr, 0, '0', constante, constanteSumar); // el primer nullptr es porque no tiene denominador, y el 0 es la amplitud para las trigonometricas
                         
                         delete[] ecuacion;
@@ -164,7 +165,7 @@ int main(void){
                         ecuacion = new double[mayExp+1];
                         denom_o_noArgumento = new double[mayExp2+1];
 
-                        if(funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2)==1){
+                        if(funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud)==1){
                             cout << "\aEl denominador no puede ser igual a 0. Ingrese los datos nuevamente.\n";
                         }else{
                             funcion.calcular_xi(ecuacion, opcion1, denom_o_noArgumento, 0, '0',constante, constanteSumar); // 0 para la amplitud en trigonometricas
@@ -190,7 +191,7 @@ int main(void){
 
                             ecuacion = new double[mayExp+1];
                             denom_o_noArgumento = new double[mayExp2+1];
-                            funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2);
+                            funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, nullptr, opcion2, amplitud);
 
                             funcion.calcular_xi(ecuacion, opcion1, denom_o_noArgumento, amplitud, opcion2, constante, constanteSumar);
                         
@@ -209,7 +210,7 @@ int main(void){
                             integral funcion(mayExp, mayExp2, a, b, n);
 
                             ecuacion = new double[mayExp+1];
-                            funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, &constante, opcion2);
+                            funcion.ingresoEcuacion(ecuacion, opcion1, denom_o_noArgumento, mayExp, mayExp2, &constanteSumar, &constante, opcion2, amplitud);
 
                             funcion.calcular_xi(ecuacion, opcion1, denom_o_noArgumento, amplitud, opcion1, constante, constanteSumar);
                         }

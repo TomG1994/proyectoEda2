@@ -40,9 +40,11 @@ class base{
             string fragmentoFuncion = ""; // Inicializamos un fragmento de la función
 
             if (ecuacion[j] != 0) {
-                int valorEnInt = round(ecuacion[j]);
+                int valorEnInt = ecuacion[j];
                 if (j > 0) {
-                    fragmentoFuncion += "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")" + "+";
+                    fragmentoFuncion += "(" + to_string(valorEnInt) + "x^" + to_string(j) + ")";
+                    if (ecuacion[j+1] !=0)
+                        fragmentoFuncion += "+";
                 } else {
                     fragmentoFuncion += "(" + to_string(valorEnInt) + ")";
                 }
@@ -50,18 +52,14 @@ class base{
             return fragmentoFuncion; // Devolvemos el fragmento de la función
         };
         
-        string doubleToString(double *varParaConvertir) {
-            string constanteStr = to_string(*varParaConvertir);
-            size_t posComa = constanteStr.find('.'); // size_t sirve para almacenar el desplazamiento de memoria
-            
-            if (posComa != string::npos) { //npos es para indicar una posicion no encontrada o resultado invalido
-                constanteStr = constanteStr.substr(0, posComa + 3);
-            }
+        string strDeDouble(double *varParaConvertir, double precision) {
+            double dRedondeado = round(*varParaConvertir / precision) * precision;
+            string constanteStr = to_string(dRedondeado);
             
             return constanteStr;
         }
 
-        short ingresoEcuacion(double *ecuacion, char opcion, double *denom_o_noArgumento, short mayExp, short mayExp2, double *constanteSuma, double *constante, char opcion2){
+        short ingresoEcuacion(double *ecuacion, char opcion, double *denom_o_noArgumento, short mayExp, short mayExp2, double *constanteSuma, double *constante, char opcion2, float amplitud){
             string fDeX_fragmento = "";
             cout << endl;
             if(opcion=='2'){
@@ -116,30 +114,34 @@ class base{
                     fDeX_fragmento = extraerFuncion(denom_o_noArgumento, i);
                     fDeX_noArgumento += fDeX_fragmento;
                 }
+
+                double precision = 0.01; //Redondeo de lo que se convierte a string
+                double dRedondeado = round(amplitud / precision) * precision;
+                string strAmpl = to_string(dRedondeado);
                 switch (opcion2) {
                     case '1':
                         if(mayExp2 != 0 || fDeX_noArgumento != "")
-                            fDeX = "Sin(" + fDeX + ")" + " + " + fDeX_noArgumento ;
+                            fDeX = strAmpl + "Sin(" + fDeX + ")" + " + " + fDeX_noArgumento ;
                         else
-                            fDeX = "Sin(" + fDeX + ")";
+                            fDeX = strAmpl + "Sin(" + fDeX + ")";
                         break;
                     case '2':
                         if(mayExp2 != 0 || fDeX_noArgumento != "")
-                            fDeX = "Cos(" + fDeX + ")" + " + " + fDeX_noArgumento ;
+                            fDeX = strAmpl + "Cos(" + fDeX + ")" + " + " + fDeX_noArgumento ;
                         else
-                            fDeX = "Cos(" + fDeX + ")";
+                            fDeX = strAmpl + "Cos(" + fDeX + ")";
                         break;
                     case '3':
                         if(mayExp2 != 0 || fDeX_noArgumento != "")
-                            fDeX = "Tan(" + fDeX + ")" + " + (" + fDeX_noArgumento + ")";
+                            fDeX = strAmpl + "Tan(" + fDeX + ")" + " + (" + fDeX_noArgumento + ")";
                         else
-                            fDeX = "Tan(" + fDeX + ")";
+                            fDeX = strAmpl + "Tan(" + fDeX + ")";
                         break;
                 }   
             }else if (opcion=='4'){
                 cout << "Constante a sumar: ";
                 cin >> *constanteSuma;
-                fDeX = doubleToString(constante) + "^(" + fDeX + ")" + " + " + doubleToString(constanteSuma);
+                fDeX = strDeDouble(constante, 0.01) + "^(" + fDeX + ")" + " + " + strDeDouble(constanteSuma, 0.01);
                 cout << fDeX;
             }
             return 0;
@@ -387,8 +389,8 @@ string integral::crearMensaje(double resultadoFinal[], double xExtremos[],string
     string mensaje = "\nLos resultados de la intregracion del intervalo entre: "+ to_string(a) + " y " + to_string(b) + " de la F(x) " + fDeX + " son:\n\n" +
                         "\t~Delta X: " + to_string(resultadoFinal[0]) + "\n"
                         "\t~Suma de los subintervalos de los extremos: " + to_string(resultadoFinal[1]) + "\n"
-                        "\t\t·Extremo inferior: " + to_string(xExtremos[0]) + "\n"
-                        "\t\t·Extremo superior: " + to_string(xExtremos[1]) + "\n\n"
+                        "\t\tExtremo inferior: " + to_string(xExtremos[0]) + "\n"
+                        "\t\tExtremo superior: " + to_string(xExtremos[1]) + "\n\n"
                         "\t~Suma de los subintervalos del medio: " + to_string(resultadoFinal[2]) + "\n"
                         "\t~Area total es: " + to_string(resultadoFinal[3]) + "u^2" + "\n";
     cout << mensaje;
@@ -429,10 +431,13 @@ void integral::calcular_xi(double *ecuacion, char opcion, double *denom_o_noArgu
         if(opcion=='1'){ // funcion polinomica
             if(i==0 || i==n){
                 suma_xExtremos += suma_imagen_num;
-                    if(i==0) // Extracción de extremos
+                    if(i==0){ // Extracción de extremos
                         xExtremos[0] = suma_imagen_num;
-                    else if(i==n)
+                        cout << "\n" << " I == 0: " << xExtremos[0] << endl; //Debuggin
+                    }else{
                         xExtremos[1] = suma_imagen_num;
+                        cout << "\n" << " I == 0: " << xExtremos[1] << endl; //Debuggin
+                    }
             }else{
                 suma_imagenMedio += suma_imagen_num;
             }
@@ -449,9 +454,8 @@ void integral::calcular_xi(double *ecuacion, char opcion, double *denom_o_noArgu
                     suma_xExtremos += (suma_imagen_num/suma_imagen_den_o_noArg);
                     if(i==0){ // Extracción de extremos
                         xExtremos[0] = (suma_imagen_num/suma_imagen_den_o_noArg);
-                    }else{
+                    }else
                         xExtremos[1] = (suma_imagen_num/suma_imagen_den_o_noArg);
-                    }
                 }else{
                     suma_imagenMedio += (suma_imagen_num/suma_imagen_den_o_noArg);
                 }
